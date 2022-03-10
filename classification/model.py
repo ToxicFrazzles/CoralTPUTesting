@@ -2,8 +2,6 @@
 from pathlib import Path
 import tensorflow as tf
 import tensorflow_model_optimization as tfmot
-import tflite_runtime.interpreter
-from keras.applications.efficientnet_v2 import EfficientNetV2L
 from keras.applications.mobilenet_v2 import MobileNetV2
 import numpy as np
 from PIL import Image
@@ -78,7 +76,6 @@ class Model:
     def _load_model(self):
         self.model = MobileNetV2(
             include_top=True, weights=None, classes=len(self.labels),
-            # include_preprocessing=False,
             input_shape=(480, 480, 3)
         )
         self.current_epoch = 0
@@ -159,9 +156,6 @@ class Model:
             return False
         converter = tf.lite.TFLiteConverter.from_keras_model(self.model)
         converter.optimizations = [tf.lite.Optimize.DEFAULT]
-        # converter.target_spec.supported_ops = [tf.lite.OpsSet.TFLITE_BUILTINS_INT8]
-        # converter.inference_input_type = tf.int8
-        # converter.inference_output_type = tf.int8
         tflite_model = converter.convert()
         with (self.weights_path / f"8bit_epoch{self.current_epoch}.tflite").open('wb') as f:
             f.write(tflite_model)
